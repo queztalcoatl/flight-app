@@ -1,0 +1,1 @@
+powershell -WindowStyle Hidden -Command "cd 'C:\Users\Teruya\Desktop\flight-app'; npm start"

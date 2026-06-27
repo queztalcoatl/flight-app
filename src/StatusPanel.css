@@ -1,0 +1,21 @@
+.table-bordered {
+  width: 40%;
+  text-align: right;
+  border-collapse: collapse;
+}
+
+.table-bordered th {
+  border: 1px solid #ccc;
+  text-align: center;
+  padding: 4px 8px;
+},
+.table-bordered td {
+  border: 1px solid #ccc;
+  text-align: right;
+  padding: 4px 8px;
+}
+.table-bordered td:first-child {
+  border: 1px solid #ccc;
+  text-align: center;
+  padding: 4px 8px;
+}
