@@ -6,23 +6,27 @@ import {
   MenuItem,
   DialogContent
 } from "@mui/material";
+import { DB } from "./DB"; // ← クラス選択にDBを利用
 
 export default function FlightForm({ onAdd, onUpdate, editData }) {
+  // 今日の日付を YYYY-MM-DD 形式で取得
+  const today = new Date().toISOString().slice(0, 10);
+
   const [form, setForm] = useState({
     id: null,
-    date: "",
-    pay: "",
-    classType: "",
-    from: "",
-    to: "",
-    kakudo: 100
+    date: today,          // デフォルト：今日
+    pay: "会社",          // デフォルト：会社
+    classType: Object.keys(DB.classes)[0], // デフォルト：DBの最初のクラス
+    from: "HND",          // デフォルト：HND
+    to: "HND",            // デフォルト：HND
+    kakudo: 100           // デフォルト：100
   });
 
   // 編集モードなら値をセット
   useEffect(() => {
     if (editData) {
       setForm({
-        id: editData.id,   // ← id を確実に保持
+        id: editData.id,
         date: editData.date,
         pay: editData.pay,
         classType: editData.classType,
@@ -33,15 +37,15 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
     } else {
       setForm({
         id: null,
-        date: "",
-        pay: "",
-        classType: "",
-        from: "",
-        to: "",
+        date: today,
+        pay: "会社",
+        classType: Object.keys(DB.classes)[0],
+        from: "HND",
+        to: "HND",
         kakudo: 100
       });
     }
-  }, [editData]);
+  }, [editData, today]);
 
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
@@ -50,7 +54,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
   const handleSubmit = () => {
     const data = {
       ...form,
-      id: form.id ?? editData?.id ?? null   // ← ここで id を絶対に保持
+      id: form.id ?? editData?.id ?? null
     };
 
     if (editData) onUpdate(data);
@@ -60,6 +64,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
   return (
     <DialogContent>
       <Stack spacing={2}>
+        {/* 日付 */}
         <TextField
           label="日付"
           type="date"
@@ -68,36 +73,44 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
           InputLabelProps={{ shrink: true }}
         />
 
+        {/* 支払 */}
         <TextField
           label="支払"
+          select
           value={form.pay}
           onChange={handleChange("pay")}
-        />
+        >
+          <MenuItem value="会社">会社</MenuItem>
+          <MenuItem value="個人">個人</MenuItem>
+        </TextField>
 
+        {/* クラス */}
         <TextField
           label="クラス"
           select
           value={form.classType}
           onChange={handleChange("classType")}
         >
-          <MenuItem value="H">H</MenuItem>
-          <MenuItem value="7">7</MenuItem>
-          <MenuItem value="5">5</MenuItem>
-          <MenuItem value="3">3</MenuItem>
+          {Object.keys(DB.classes).map((c) => (
+            <MenuItem key={c} value={c}>{c}</MenuItem>
+          ))}
         </TextField>
 
+        {/* 出発 */}
         <TextField
           label="出発"
           value={form.from}
           onChange={handleChange("from")}
         />
 
+        {/* 到着 */}
         <TextField
           label="到着"
           value={form.to}
           onChange={handleChange("to")}
         />
 
+        {/* 確度 */}
         <TextField
           label="確度"
           type="number"
@@ -105,6 +118,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
           onChange={handleChange("kakudo")}
         />
 
+        {/* 追加／更新ボタン */}
         <Button variant="contained" onClick={handleSubmit}>
           {editData ? "更新" : "追加"}
         </Button>
