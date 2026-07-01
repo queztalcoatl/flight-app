@@ -20,7 +20,8 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
 
     from: "HND",          // デフォルト：HND
     to: "HND",            // デフォルト：HND
-    kakudo: 100           // デフォルト：100
+    kakudo: 100,           // デフォルト：100
+    note: ""              // 備考追加
   });
 
   // 編集モードなら値をセット
@@ -33,7 +34,8 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         classType: editData.classType,
         from: editData.from,
         to: editData.to,
-        kakudo: editData.kakudo
+        kakudo: editData.kakudo,
+        note: editData.note ?? ""   //備考
       });
     } else {
       setForm({
@@ -43,7 +45,8 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         classType: Object.keys(DB.classes)[9],
         from: "HND",
         to: "HND",
-        kakudo: 100
+        kakudo: 100,
+        note: ""   //備考
       });
     }
   }, [editData, today]);
@@ -123,6 +126,15 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         <Button variant="contained" onClick={handleSubmit}>
           {editData ? "更新" : "追加"}
         </Button>
+        
+       {/* 備考 */}
+        <TextField
+        label="備考"
+        value={form.note}
+        inputProps={{ maxLength: 20 }}
+        onChange={(e) => setForm({ ...form, note: e.target.value })}
+        fullWidth
+      />
       </Stack>
     </DialogContent>
   );

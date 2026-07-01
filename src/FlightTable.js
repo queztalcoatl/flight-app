@@ -17,7 +17,7 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
       return;
     }
 
-    const header = ["日付", "支払", "クラス", "出発", "到着", "PP", "Mile", "確度"];
+    const header = ["日付", "支払", "クラス", "出発", "到着", "PP", "Mile", "確度","備考"];
     const rows = flights.map((f) => [
       f.date,
       f.pay,
@@ -26,7 +26,8 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
       f.to,
       f.pp,
       f.mile,
-      f.kakudo
+      f.kakudo,
+      f.note ?? ""
     ]);
 
     const csvContent = [header, ...rows].map((e) => e.join(",")).join("\n");
@@ -64,8 +65,9 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
           from: cols[3],
           to: cols[4],
           kakudo: safeNumber(cols[5], 100),
-          pp: 0,
-          mile: 0
+          note: cols[6] ?? "",
+        pp: 0,
+         mile: 0
         };
       });
 
@@ -97,52 +99,15 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
     return () => clearTimeout(timer);
   }, [flights, today]);
 
-//  const columns = [
-//    { field: "date", headerName: "日付", width: 110 },
-//    { field: "pay", headerName: "支払", width: 90 },
-//    { field: "classType", headerName: "クラス", width: 90 },
-//    { field: "from", headerName: "出発", width: 90 },
-//    { field: "to", headerName: "到着", width: 90 },
-//    { field: "pp", headerName: "PP", width: 90 },
-//    { field: "mile", headerName: "Mile", width: 90 },
-//    { field: "kakudo", headerName: "確度", width: 90 },
-//    {
-//      field: "actions",
-//      headerName: "操作",
-//      width: 180,
-//      sortable: false,
-//      renderCell: (params) => (
-//        <Stack direction="row" spacing={1}>
-//          <Button size="small" variant="outlined" onClick={() => onEdit(params.row)}>
-//            編集
-//          </Button>
-//          <Button size="small" color="error" variant="outlined" onClick={() => onDelete(params.row)}>
-//            削除
-//          </Button>
-//        </Stack>
-//      )
-//    }
-//  ];
-
 const columns = [
-//  { field: "date", headerName: "日付", width: 100 },
-//  { field: "from", headerName: "出発", width: 40 },
-//  { field: "to", headerName: "到着", width: 40 },
-//  { field: "classType", headerName: "クラス", width: 20 },
-//  { field: "kakudo", headerName: "確度", width: 40 },
-//  { field: "pp", headerName: "PP", width: 55 },
-//  { field: "mile", headerName: "Mile", width: 55 },
-//  { field: "pay", headerName: "支払", width: 40 },
-
   { field: "date", headerName: "日付", width: 100, align: "right", headerAlign: "center" },
-  { field: "from", headerName: "出発", width: 40, align: "center", headerAlign: "center" },
-  { field: "to", headerName: "到着", width: 40, align: "center", headerAlign: "center" },
-  { field: "classType", headerName: "クラス", width: 20, align: "center", headerAlign: "center" },
+  { field: "from", headerName: "出発", width: 51, align: "center", headerAlign: "center" },
+  { field: "to", headerName: "到着", width: 51, align: "center", headerAlign: "center" },
+  { field: "classType", headerName: "Cls", width: 20, align: "center", headerAlign: "center" },
   { field: "kakudo", headerName: "確度", width: 40, align: "center", headerAlign: "center" },
   { field: "pp", headerName: "PP", width: 55, align: "right", headerAlign: "center" },
   { field: "mile", headerName: "Mile", width: 55, align: "right", headerAlign: "center" },
   { field: "pay", headerName: "支払", width: 40, align: "center", headerAlign: "center" },
-
   {
     field: "actions",
     headerName: "操作",
@@ -160,7 +125,8 @@ const columns = [
         </Button>
       </Stack>
     )
-  }
+  },
+  { field: "note", headerName: "備考", width: 300, align: "left", headerAlign: "center" }
 ];
 
   return (

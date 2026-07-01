@@ -108,7 +108,7 @@ export default function StatusPanel({ flights }) {
             <tr>
               <td style={{ border: "1px solid #ccc",
                fontWeight: "bold",
-               textAlign: "center"  }}>残り（目標 {target}）</td>
+               textAlign: "center"  }}>残PP</td>
               <td style={{ border: "1px solid #ccc",
                color: colorFor(remain.jisseki),
                fontWeight: "bold",
