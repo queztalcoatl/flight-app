@@ -4,18 +4,22 @@
   border-collapse: collapse;
 }
 
-.table-bordered th {
-  border: 1px solid #ccc;
-  text-align: center;
-  padding: 4px 8px;
-},
+/* 共通設定：行高さを詰める、改行防止、縦中央揃え */
+.table-bordered th,
 .table-bordered td {
   border: 1px solid #ccc;
-  text-align: right;
-  padding: 4px 8px;
+  white-space: nowrap;      /* 改行防止 */
+  line-height: 1;         /* 行の高さを詰める */
+  padding: 2px 4px;         /* 余白を少なく */
+  vertical-align: middle;   /* 縦中央揃え */
 }
-.table-bordered td:first-child {
-  border: 1px solid #ccc;
+
+/* ヘッダーは中央寄せ */
+.table-bordered th {
   text-align: center;
-  padding: 4px 8px;
+}
+
+/* 1列目（会社・個人・合計・残PP）は中央寄せ */
+.table-bordered td:first-child {
+  text-align: center;
 }

@@ -42,7 +42,8 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         id: null,
         date: today,
         pay: "会社",
-        classType: Object.keys(DB.classes)[9],
+//        classType: Object.keys(DB.classes)[4],
+        classType: "H",
         from: "HND",
         to: "HND",
         kakudo: 100,
@@ -89,6 +90,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         </TextField>
 
         {/* クラス */}
+        {/*
         <TextField
           label="クラス"
           select
@@ -99,6 +101,34 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
             <MenuItem key={c} value={c}>{c}</MenuItem>
           ))}
         </TextField>
+*/}
+{/* クラス */}
+<TextField
+  label="クラス"
+  select
+  value={form.classType}
+  onChange={handleChange("classType")}
+>
+  {(() => {
+    const cutoff = new Date("2026-05-19");
+    const current = new Date(form.date);
+
+    const classes = current < cutoff
+      ? { ...DB.oldClasses, ...DB.newClasses }  // ★ 過去は全部
+      : DB.newClasses;                          // ★ 新規はA〜Jのみ
+
+    return Object.keys(classes).map((c) => (
+      <MenuItem key={c} value={c}>{c}</MenuItem>
+    ));
+  })()}
+</TextField>
+
+{/* ★ クラス注釈（新クラスのみ） */}
+<div style={{ marginTop: 4, fontSize: "0.8rem", color: "#555" }}>
+  {DB.newClasses[form.classType]?.desc ?? DB.oldClasses[form.classType]?.desc ?? ""}
+</div>
+
+
 
         {/* 出発 */}
        <TextField

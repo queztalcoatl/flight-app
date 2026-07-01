@@ -91,7 +91,7 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
     const timer = setTimeout(() => {
       const gridBody = gridRef.current.querySelector(".MuiDataGrid-virtualScroller");
       if (gridBody && firstFutureIndex >= 0) {
-        const rowHeight = 52;
+        const rowHeight = 28;
         gridBody.scrollTop = firstFutureIndex * rowHeight;
       }
     }, 300);
@@ -108,25 +108,49 @@ const columns = [
   { field: "pp", headerName: "PP", width: 55, align: "right", headerAlign: "center" },
   { field: "mile", headerName: "Mile", width: 55, align: "right", headerAlign: "center" },
   { field: "pay", headerName: "支払", width: 40, align: "center", headerAlign: "center" },
+  { field: "note", headerName: "備考", width: 300, align: "left", headerAlign: "center" },
   {
     field: "actions",
     headerName: "操作",
-    width: 150,
-//  align: "center",
-  	headerAlign: "center",
+    width: 100,
+    headerAlign: "center",
     sortable: false,
     renderCell: (params) => (
-      <Stack direction="row" spacing={1}>
-        <Button size="small" variant="outlined" onClick={() => onEdit(params.row)}>
-          編集
-        </Button>
-        <Button size="small" color="error" variant="outlined" onClick={() => onDelete(params.row)}>
-          削除
-        </Button>
-      </Stack>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",     // 縦中央寄せ
+          justifyContent: "center", // 横中央寄せ
+          width: "100%",
+          height: "100%"
+        }}
+      >
+        <Stack direction="row" spacing={1}>
+          <Button
+            size="small"
+            variant="outlined"
+            sx={{ minWidth: 32, padding: "1px 3px", fontSize: "0.65rem" }}   // ★ 小型化
+            onClick={() => onEdit(params.row)}
+          >
+            編集
+          </Button>
+
+          <Button
+            size="small"
+            color="error"
+            variant="outlined"
+            sx={{ minWidth: 32, padding: "1px 3px", fontSize: "0.65rem" }}   // ★ 小型化
+            onClick={() => onDelete(params.row)}
+          >
+            削除
+          </Button>
+        </Stack>
+      </div>
     )
-  },
-  { field: "note", headerName: "備考", width: 300, align: "left", headerAlign: "center" }
+  }
+
+
+
 ];
 
   return (
@@ -145,6 +169,8 @@ const columns = [
           columns={columns}
           getRowId={(row) => row.id}
           disableRowSelectionOnClick
+  	rowHeight={28}
+  	headerHeight={32}
           paginationModel={{ pageSize: 100 }}
           ref={gridRef}
           getRowClassName={(params) => {
