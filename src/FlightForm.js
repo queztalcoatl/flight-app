@@ -16,7 +16,8 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
     id: null,
     date: today,          // デフォルト：今日
     pay: "会社",          // デフォルト：会社
-    classType: Object.keys(DB.classes)[0], // デフォルト：DBの最初のクラス
+    classType: "H", // Object.keys(DB.classes)[9],  デフォルト：H
+
     from: "HND",          // デフォルト：HND
     to: "HND",            // デフォルト：HND
     kakudo: 100           // デフォルト：100
@@ -39,7 +40,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         id: null,
         date: today,
         pay: "会社",
-        classType: Object.keys(DB.classes)[0],
+        classType: Object.keys(DB.classes)[9],
         from: "HND",
         to: "HND",
         kakudo: 100
