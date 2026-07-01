@@ -92,13 +92,7 @@ useEffect(() => {
   }, 300); // 0.5秒後に実行（描画完了を待つ）
 
   return () => clearTimeout(timer);
-}, [flights]);
-
-
-
-
-
-
+}, [flights, today]);
 
   const columns = [
     { field: "date", headerName: "日付", width: 110 },
