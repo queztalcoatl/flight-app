@@ -1,8 +1,16 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button, Stack } from "@mui/material";
 
 export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
+
+  // today を useMemo で固定化（Lint対策）
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
   const exportCSV = () => {
     if (flights.length === 0) {
       alert("データがありません");
@@ -49,7 +57,7 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
       const importedFlights = dataLines.map((line) => {
         const cols = line.split(",");
         return {
-          id: crypto.randomUUID(), // ← 必ず id を付与
+          id: crypto.randomUUID(),
           date: cols[0],
           pay: cols[1],
           classType: cols[2],
@@ -67,32 +75,27 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
     reader.readAsText(file);
   };
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+  const gridRef = useRef(null);
 
-const gridRef = useRef(null);
+  useEffect(() => {
+    if (!gridRef.current) return;
 
-useEffect(() => {
-  if (!gridRef.current) return;
+    const firstFutureIndex = flights.findIndex((f) => {
+      const d = new Date(f.date);
+      d.setHours(0, 0, 0, 0);
+      return d >= today;
+    });
 
-  // 今日以降の最初のレコードを探す
-  const firstFutureIndex = flights.findIndex((f) => {
-    const d = new Date(f.date);
-    d.setHours(0, 0, 0, 0);
-    return d >= today;
-  });
+    const timer = setTimeout(() => {
+      const gridBody = gridRef.current.querySelector(".MuiDataGrid-virtualScroller");
+      if (gridBody && firstFutureIndex >= 0) {
+        const rowHeight = 52;
+        gridBody.scrollTop = firstFutureIndex * rowHeight;
+      }
+    }, 300);
 
-  // DataGrid の描画完了を待ってから DOM スクロール
-  const timer = setTimeout(() => {
-    const gridBody = gridRef.current.querySelector(".MuiDataGrid-virtualScroller");
-    if (gridBody && firstFutureIndex >= 0) {
-      const rowHeight = 52; // DataGrid の1行の高さ（px）
-      gridBody.scrollTop = firstFutureIndex * rowHeight;
-    }
-  }, 300); // 0.5秒後に実行（描画完了を待つ）
-
-  return () => clearTimeout(timer);
-}, [flights, today]);
+    return () => clearTimeout(timer);
+  }, [flights, today]);
 
   const columns = [
     { field: "date", headerName: "日付", width: 110 },
