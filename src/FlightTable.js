@@ -97,32 +97,71 @@ export default function FlightTable({ flights, onDelete, onEdit, onImport }) {
     return () => clearTimeout(timer);
   }, [flights, today]);
 
-  const columns = [
-    { field: "date", headerName: "日付", width: 110 },
-    { field: "pay", headerName: "支払", width: 90 },
-    { field: "classType", headerName: "クラス", width: 90 },
-    { field: "from", headerName: "出発", width: 90 },
-    { field: "to", headerName: "到着", width: 90 },
-    { field: "pp", headerName: "PP", width: 90 },
-    { field: "mile", headerName: "Mile", width: 90 },
-    { field: "kakudo", headerName: "確度", width: 90 },
-    {
-      field: "actions",
-      headerName: "操作",
-      width: 180,
-      sortable: false,
-      renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
-          <Button size="small" variant="outlined" onClick={() => onEdit(params.row)}>
-            編集
-          </Button>
-          <Button size="small" color="error" variant="outlined" onClick={() => onDelete(params.row)}>
-            削除
-          </Button>
-        </Stack>
-      )
-    }
-  ];
+//  const columns = [
+//    { field: "date", headerName: "日付", width: 110 },
+//    { field: "pay", headerName: "支払", width: 90 },
+//    { field: "classType", headerName: "クラス", width: 90 },
+//    { field: "from", headerName: "出発", width: 90 },
+//    { field: "to", headerName: "到着", width: 90 },
+//    { field: "pp", headerName: "PP", width: 90 },
+//    { field: "mile", headerName: "Mile", width: 90 },
+//    { field: "kakudo", headerName: "確度", width: 90 },
+//    {
+//      field: "actions",
+//      headerName: "操作",
+//      width: 180,
+//      sortable: false,
+//      renderCell: (params) => (
+//        <Stack direction="row" spacing={1}>
+//          <Button size="small" variant="outlined" onClick={() => onEdit(params.row)}>
+//            編集
+//          </Button>
+//          <Button size="small" color="error" variant="outlined" onClick={() => onDelete(params.row)}>
+//            削除
+//          </Button>
+//        </Stack>
+//      )
+//    }
+//  ];
+
+const columns = [
+//  { field: "date", headerName: "日付", width: 100 },
+//  { field: "from", headerName: "出発", width: 40 },
+//  { field: "to", headerName: "到着", width: 40 },
+//  { field: "classType", headerName: "クラス", width: 20 },
+//  { field: "kakudo", headerName: "確度", width: 40 },
+//  { field: "pp", headerName: "PP", width: 55 },
+//  { field: "mile", headerName: "Mile", width: 55 },
+//  { field: "pay", headerName: "支払", width: 40 },
+
+  { field: "date", headerName: "日付", width: 100, align: "right", headerAlign: "center" },
+  { field: "from", headerName: "出発", width: 40, align: "center", headerAlign: "center" },
+  { field: "to", headerName: "到着", width: 40, align: "center", headerAlign: "center" },
+  { field: "classType", headerName: "クラス", width: 20, align: "center", headerAlign: "center" },
+  { field: "kakudo", headerName: "確度", width: 40, align: "center", headerAlign: "center" },
+  { field: "pp", headerName: "PP", width: 55, align: "right", headerAlign: "center" },
+  { field: "mile", headerName: "Mile", width: 55, align: "right", headerAlign: "center" },
+  { field: "pay", headerName: "支払", width: 40, align: "center", headerAlign: "center" },
+
+  {
+    field: "actions",
+    headerName: "操作",
+    width: 150,
+//  align: "center",
+  	headerAlign: "center",
+    sortable: false,
+    renderCell: (params) => (
+      <Stack direction="row" spacing={1}>
+        <Button size="small" variant="outlined" onClick={() => onEdit(params.row)}>
+          編集
+        </Button>
+        <Button size="small" color="error" variant="outlined" onClick={() => onDelete(params.row)}>
+          削除
+        </Button>
+      </Stack>
+    )
+  }
+];
 
   return (
     <div style={{ marginTop: 20 }}>
