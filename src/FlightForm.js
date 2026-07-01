@@ -98,18 +98,18 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         </TextField>
 
         {/* 出発 */}
-        <TextField
-          label="出発"
-          value={form.from}
-          onChange={handleChange("from")}
-        />
+       <TextField
+         label="出発"
+         value={form.from}
+         onChange={(e) => setForm({ ...form, from: e.target.value.toUpperCase() })}
+       />
 
         {/* 到着 */}
-        <TextField
-          label="到着"
-          value={form.to}
-          onChange={handleChange("to")}
-        />
+       <TextField
+         label="到着"
+         value={form.to}
+         onChange={(e) => setForm({ ...form, to: e.target.value.toUpperCase() })}
+       />
 
         {/* 確度 */}
         <TextField
