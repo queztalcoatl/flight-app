@@ -173,28 +173,11 @@ const columns = [
   	headerHeight={32}
           paginationModel={{ pageSize: 100 }}
           ref={gridRef}
-//          getRowClassName={(params) => {
-//            const rowDate = new Date(params.row.date);
-//            return rowDate < today ? "past-row" : "";
-//          }}
-            getRowClassName={(params) => {
-              const d = new Date(params.row.date);
-              d.setHours(0, 0, 0, 0);
-
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-
-              // ★ 過去日は最優先で灰色
-              if (d < today) return "past-row";
-
-              // ★ 今日以降は月ごとに色分け
-              const month = d.getMonth(); // 0〜11
-              return `month-${month}`;
-            }}
-
-
-
-/>
+          getRowClassName={(params) => {
+            const rowDate = new Date(params.row.date);
+            return rowDate < today ? "past-row" : "";
+          }}
+        />
       </div>
 
       <style>

@@ -44,7 +44,7 @@ export default function StatusPanel({ flights }) {
       ppTotal.p60 += f.pp;
     }
 
-    if (d <= today && f.kakudo === 100) {
+    if (d < today && f.kakudo === 100) {
       bucket.jisseki += f.pp;
       ppTotal.jisseki += f.pp;
     }
