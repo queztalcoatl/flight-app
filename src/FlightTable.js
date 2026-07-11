@@ -108,7 +108,7 @@ const columns = [
   { field: "pp", headerName: "PP", width: 55, align: "right", headerAlign: "center" },
   { field: "mile", headerName: "Mile", width: 55, align: "right", headerAlign: "center" },
   { field: "pay", headerName: "支払", width: 40, align: "center", headerAlign: "center" },
-  { field: "note", headerName: "備考", width: 300, align: "left", headerAlign: "center" },
+  { field: "note", headerName: "備考", width:150, align: "left", headerAlign: "center" },
   {
     field: "actions",
     headerName: "操作",

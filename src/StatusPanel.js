@@ -1,19 +1,15 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, Typography } from "@mui/material";
 import "./StatusPanel.css";
+import { DB } from "./DB";
+import { db } from "./firebase";
+import { ref, set, onValue } from "firebase/database";
 
 export default function StatusPanel({ flights }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = 50000;
 
-  const initPP = () => ({
-    jisseki: 0,
-    p100: 0,
-    p80: 0,
-    p60: 0
-  });
-
+  const initPP = () => ({ jisseki: 0, p100: 0, p80: 0, p60: 0 });
   const ppCompany = initPP();
   const ppPersonal = initPP();
   const ppTotal = initPP();
@@ -33,22 +29,18 @@ export default function StatusPanel({ flights }) {
       bucket.p100 += f.pp;
       ppTotal.p100 += f.pp;
     }
-
     if (f.kakudo >= 80) {
       bucket.p80 += f.pp;
       ppTotal.p80 += f.pp;
     }
-
     if (f.kakudo >= 60) {
       bucket.p60 += f.pp;
       ppTotal.p60 += f.pp;
     }
-
     if (d < today && f.kakudo === 100) {
       bucket.jisseki += f.pp;
       ppTotal.jisseki += f.pp;
     }
-
     if (d > today && f.kakudo === 100) {
       if (isCompany) mileCompanyFuture += f.mile;
       else milePersonalFuture += f.mile;
@@ -56,14 +48,50 @@ export default function StatusPanel({ flights }) {
     }
   });
 
-  const remain = {
-    jisseki: ppTotal.jisseki - target,
-    p100: ppTotal.p100 - target,
-    p80: ppTotal.p80 - target,
-    p60: ppTotal.p60 - target
+  // ---------------------------------------------------------
+  // 🔥 Realtime 永続化（DataGrid と同じ仕組み）
+  // ---------------------------------------------------------
+
+  const [currentMile, setCurrentMile] = useState(0);
+  const [currentCoinInput, setCurrentCoinInput] = useState(0);
+
+  // 初期値を Firebase から読み込む
+  useEffect(() => {
+    const mileRef = ref(db, "settings/currentMile");
+    const coinRef = ref(db, "settings/currentCoinInput");
+
+    onValue(mileRef, (snapshot) => {
+      const v = snapshot.val();
+      if (v !== null) setCurrentMile(v);
+    });
+
+    onValue(coinRef, (snapshot) => {
+      const v = snapshot.val();
+      if (v !== null) setCurrentCoinInput(v);
+    });
+  }, []);
+
+  // 入力した瞬間に Firebase に保存（リアルタイム）
+  const updateMile = (v) => {
+    setCurrentMile(v);
+    set(ref(db, "settings/currentMile"), v);
   };
 
-  const colorFor = (v) => (v < 0 ? "red" : "black");
+  const updateCoin = (v) => {
+    setCurrentCoinInput(v);
+    set(ref(db, "settings/currentCoinInput"), v);
+  };
+
+  // ---------------------------------------------------------
+  // スカイコイン計算
+  // ---------------------------------------------------------
+  const totalMile = currentMile + mileTotalFuture;
+  const r = DB.calcSkycoinFromMilesOfficial(totalMile, currentCoinInput);
+
+  const roundedMiles = r.roundedMiles;
+  const coinFromMiles = r.coinFromMiles;
+  const totalCoinWithCurrent = r.totalCoinWithCurrent;
+  const rate = r.rate;
 
   return (
     <Card style={{ marginBottom: 20 }}>
@@ -72,71 +100,47 @@ export default function StatusPanel({ flights }) {
           PP / Mile 集計
         </Typography>
 
+        {/* PP 表 */}
         <table className="table-bordered">
           <thead>
             <tr>
-              <th style={{ border: "1px solid #ccc" }}></th>
-              <th style={{ border: "1px solid #ccc" }}>実績</th>
-              <th style={{ border: "1px solid #ccc" }}>100%</th>
-              <th style={{ border: "1px solid #ccc" }}>80%</th>
-              <th style={{ border: "1px solid #ccc" }}>60%</th>
+              <th></th>
+              <th>実績</th>
+              <th>100%</th>
+              <th>80%</th>
+              <th>60%</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-               <td style={{ border: "1px solid #ccc" }}>会社</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppCompany.jisseki}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppCompany.p100}</td>
-               <td style={{ border: "1		px solid #ccc" }}>{ppCompany.p80}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppCompany.p60}</td>
+              <td>会社</td>
+              <td>{ppCompany.jisseki}</td>
+              <td>{ppCompany.p100}</td>
+              <td>{ppCompany.p80}</td>
+              <td>{ppCompany.p60}</td>
             </tr>
             <tr>
-               <td style={{ border: "1px solid #ccc" }}>個人</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppPersonal.jisseki}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppPersonal.p100}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppPersonal.p80}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppPersonal.p60}</td>
+              <td>個人</td>
+              <td>{ppPersonal.jisseki}</td>
+              <td>{ppPersonal.p100}</td>
+              <td>{ppPersonal.p80}</td>
+              <td>{ppPersonal.p60}</td>
             </tr>
             <tr>
-               <td style={{ border: "1px solid #ccc",
-                 }}>合計</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppTotal.jisseki}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppTotal.p100}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppTotal.p80}</td>
-               <td style={{ border: "1px solid #ccc" }}>{ppTotal.p60}</td>
-            </tr>
-            <tr>
-              <td style={{ border: "1px solid #ccc",
-               fontWeight: "bold",
-               textAlign: "center"  }}>残PP</td>
-              <td style={{ border: "1px solid #ccc",
-               color: colorFor(remain.jisseki),
-               fontWeight: "bold",
-               textAlign: "right" }}>
-                {remain.jisseki}
-              </td>
-              <td style={{ border: "1px solid #ccc",  color: colorFor(remain.p100),
-               fontWeight: "bold",
-               textAlign: "right" }}>
-                {remain.p100}
-              </td>
-              <td style={{ border: "1px solid #ccc", color: colorFor(remain.p80),
-                             fontWeight: "bold",
-               textAlign: "right" }}>
-                {remain.p80}
-              </td>
-              <td style={{ border: "1px solid #ccc", color: colorFor(remain.p60),
-                             fontWeight: "bold",
-               textAlign: "right" }}>
-                {remain.p60}
-              </td>
+              <td>合計</td>
+              <td>{ppTotal.jisseki}</td>
+              <td>{ppTotal.p100}</td>
+              <td>{ppTotal.p80}</td>
+              <td>{ppTotal.p60}</td>
             </tr>
           </tbody>
         </table>
 
-        <Typography variant="subtitle1" gutterBottom>
-          未来 Mile（明日以降 & 確度 100%）
+        {/* 未来マイル */}
+        <Typography variant="subtitle1" gutterBottom style={{ marginTop: 20 }}>
+          未来 Mile（明日以降 & 確度100%）
         </Typography>
+
         <table className="table-bordered">
           <thead>
             <tr>
@@ -147,15 +151,89 @@ export default function StatusPanel({ flights }) {
           <tbody>
             <tr>
               <td>会社</td>
-              <td style={{ border: "1px solid #ccc" }}>{mileCompanyFuture}</td>
+              <td>{mileCompanyFuture}</td>
             </tr>
             <tr>
               <td>個人</td>
-              <td style={{ border: "1px solid #ccc" }}>{milePersonalFuture}</td>
+              <td>{milePersonalFuture}</td>
             </tr>
             <tr>
-              <td style={{ border: "1px solid #ccc" }}>合計</td>
-              <td style={{ border: "1px solid #ccc" }}>{mileTotalFuture}</td>
+              <td>合計</td>
+              <td>{mileTotalFuture}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* 入力欄 */}
+        <Typography variant="subtitle1" gutterBottom style={{ marginTop: 20 }}>
+          現在マイル・スカイコイン入力
+        </Typography>
+
+        <table className="table-bordered" style={{ marginBottom: 10 }}>
+          <thead>
+            <tr>
+              <th style={{ width: "150px" }}>項目</th>
+              <th style={{ width: "100px" }}>値</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mile</td>
+              <td>
+                <input
+                  type="number"
+                  value={currentMile}
+                  onChange={(e) => updateMile(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    textAlign: "right",
+                    fontSize: "14px",
+                    padding: "4px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Sky Coin</td>
+              <td>
+                <input
+                  type="number"
+                  value={currentCoinInput}
+                  onChange={(e) => updateCoin(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    textAlign: "right",
+                    fontSize: "14px",
+                    padding: "4px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* 計算結果 */}
+        <table className="table-bordered">
+          <thead>
+            <tr>
+              <th style={{ width: "150px" }}>項目</th>
+              <th style={{ width: "100px" }}>値</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>合計マイル</td>
+              <td style={{ textAlign: "right" }}>{totalMile}</td>
+            </tr>
+            <tr>
+              <td>Coin（{roundedMiles} × {rate}）</td>
+              <td style={{ textAlign: "right" }}>{coinFromMiles} </td>
+            </tr>
+            <tr>
+              <td>Coin合計</td>
+              <td style={{ textAlign: "right" }}>{totalCoinWithCurrent}</td>
             </tr>
           </tbody>
         </table>

@@ -20,7 +20,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
 
     from: "HND",          // デフォルト：HND
     to: "HND",            // デフォルト：HND
-    kakudo: 100,           // デフォルト：100
+    kakudo: 60,           // デフォルト：60
     note: ""              // 備考追加
   });
 
