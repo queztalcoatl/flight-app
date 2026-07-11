@@ -1,3 +1,6 @@
+/* ===============================
+   テーブル基本設定
+=============================== */
 .table-bordered {
   width: 40%;
   text-align: right;
@@ -9,7 +12,7 @@
 .table-bordered td {
   border: 1px solid #ccc;
   white-space: nowrap;      /* 改行防止 */
-  line-height: 1;         /* 行の高さを詰める */
+  line-height: 1;           /* 行の高さを詰める */
   padding: 2px 4px;         /* 余白を少なく */
   vertical-align: middle;   /* 縦中央揃え */
 }
@@ -24,12 +27,13 @@
   text-align: center;
 }
 
-/* ★ 過去日は最優先で灰色 */
+/* ===============================
+   行の色分け（過去・月別）
+=============================== */
 .past-row {
   background-color: #e0e0e0 !important;
 }
 
-/* ★ 今日以降の月別色 */
 .month-0  { background-color: #fff8e1 !important; }  /* 1月 */
 .month-1  { background-color: #e1f5fe !important; }  /* 2月 */
 .month-2  { background-color: #f3e5f5 !important; }  /* 3月 */
@@ -43,3 +47,56 @@
 .month-10 { background-color: #e3f2fd !important; }  /* 11月 */
 .month-11 { background-color: #fbe9e7 !important; }  /* 12月 */
 
+/* ===============================
+   スマホ対応（レスポンシブ）
+=============================== */
+
+/* 横並びテーブルをスマホで縦並びに */
+@media (max-width: 768px) {
+  .table-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .table-bordered {
+    width: 100% !important;
+  }
+
+  /* テーブル内の文字サイズを少し縮小 */
+  .table-bordered th,
+  .table-bordered td {
+    font-size: 13px;
+    padding: 3px 4px;
+  }
+
+  /* 入力欄を広く（6桁対応） */
+  input[type="number"] {
+    width: 100% !important;
+    font-size: 14px;
+    text-align: right;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+}
+
+/* PCでは横並び維持 */
+@media (min-width: 769px) {
+  .table-flex {
+    display: flex;
+    gap: 20px;
+  }
+
+  .table-bordered {
+    flex: 1;
+  }
+
+  input[type="number"] {
+    width: 120px !important; /* 6桁対応 */
+    text-align: right;
+    font-size: 14px;
+    padding: 4px;
+    box-sizing: border-box;
+  }
+}
