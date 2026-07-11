@@ -10,6 +10,7 @@ export default function StatusPanel({ flights }) {
   today.setHours(0, 0, 0, 0);
 
   const initPP = () => ({ jisseki: 0, p100: 0, p80: 0, p60: 0 });
+
   const ppCompany = initPP();
   const ppPersonal = initPP();
   const ppTotal = initPP();
@@ -37,10 +38,12 @@ export default function StatusPanel({ flights }) {
       bucket.p60 += f.pp;
       ppTotal.p60 += f.pp;
     }
+
     if (d < today && f.kakudo === 100) {
       bucket.jisseki += f.pp;
       ppTotal.jisseki += f.pp;
     }
+
     if (d > today && f.kakudo === 100) {
       if (isCompany) mileCompanyFuture += f.mile;
       else milePersonalFuture += f.mile;
@@ -49,13 +52,11 @@ export default function StatusPanel({ flights }) {
   });
 
   // ---------------------------------------------------------
-  // 🔥 Realtime 永続化（DataGrid と同じ仕組み）
+  // 🔥 Realtime 永続化
   // ---------------------------------------------------------
-
   const [currentMile, setCurrentMile] = useState(0);
   const [currentCoinInput, setCurrentCoinInput] = useState(0);
 
-  // 初期値を Firebase から読み込む
   useEffect(() => {
     const mileRef = ref(db, "settings/currentMile");
     const coinRef = ref(db, "settings/currentCoinInput");
@@ -71,7 +72,6 @@ export default function StatusPanel({ flights }) {
     });
   }, []);
 
-  // 入力した瞬間に Firebase に保存（リアルタイム）
   const updateMile = (v) => {
     setCurrentMile(v);
     set(ref(db, "settings/currentMile"), v);
@@ -100,143 +100,152 @@ export default function StatusPanel({ flights }) {
           PP / Mile 集計
         </Typography>
 
-        {/* PP 表 */}
-        <table className="table-bordered">
-          <thead>
-            <tr>
-              <th></th>
-              <th>実績</th>
-              <th>100%</th>
-              <th>80%</th>
-              <th>60%</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>会社</td>
-              <td>{ppCompany.jisseki}</td>
-              <td>{ppCompany.p100}</td>
-              <td>{ppCompany.p80}</td>
-              <td>{ppCompany.p60}</td>
-            </tr>
-            <tr>
-              <td>個人</td>
-              <td>{ppPersonal.jisseki}</td>
-              <td>{ppPersonal.p100}</td>
-              <td>{ppPersonal.p80}</td>
-              <td>{ppPersonal.p60}</td>
-            </tr>
-            <tr>
-              <td>合計</td>
-              <td>{ppTotal.jisseki}</td>
-              <td>{ppTotal.p100}</td>
-              <td>{ppTotal.p80}</td>
-              <td>{ppTotal.p60}</td>
-            </tr>
-          </tbody>
-        </table>
+        {/* PP 表 ＋ 未来 Mile を横並び */}
+        <div style={{ display: "flex", gap: "20px", marginTop: 10 }}>
+          {/* PP 表 */}
+          <table className="table-bordered" style={{ flex: 1 }}>
+            <thead>
+              <tr>
+                <th></th>
+                <th>実績</th>
+                <th>100%</th>
+                <th>80%</th>
+                <th>60%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>会社</td>
+                <td>{ppCompany.jisseki}</td>
+                <td>{ppCompany.p100}</td>
+                <td>{ppCompany.p80}</td>
+                <td>{ppCompany.p60}</td>
+              </tr>
+              <tr>
+                <td>個人</td>
+                <td>{ppPersonal.jisseki}</td>
+                <td>{ppPersonal.p100}</td>
+                <td>{ppPersonal.p80}</td>
+                <td>{ppPersonal.p60}</td>
+              </tr>
+              <tr>
+                <td>合計</td>
+                <td>{ppTotal.jisseki}</td>
+                <td>{ppTotal.p100}</td>
+                <td>{ppTotal.p80}</td>
+                <td>{ppTotal.p60}</td>
+              </tr>
+            </tbody>
+          </table>
 
-        {/* 未来マイル */}
+          {/* 未来 Mile（右隣） */}
+          <table className="table-bordered" style={{ flex: 1 }}>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Mile</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>会社</td>
+                <td>{mileCompanyFuture}</td>
+              </tr>
+              <tr>
+                <td>個人</td>
+                <td>{milePersonalFuture}</td>
+              </tr>
+              <tr>
+                <td>合計</td>
+                <td>{mileTotalFuture}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* 横並びブロック（入力＋計算結果） */}
         <Typography variant="subtitle1" gutterBottom style={{ marginTop: 20 }}>
-          未来 Mile（明日以降 & 確度100%）
+          現在マイル・スカイコイン入力 ＋ 計算結果
         </Typography>
 
-        <table className="table-bordered">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Mile</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>会社</td>
-              <td>{mileCompanyFuture}</td>
-            </tr>
-            <tr>
-              <td>個人</td>
-              <td>{milePersonalFuture}</td>
-            </tr>
-            <tr>
-              <td>合計</td>
-              <td>{mileTotalFuture}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "20px",
+            marginTop: 10,
+          }}
+        >
+          {/* 左：入力欄 */}
+          <table className="table-bordered" style={{ flex: 1 }}>
+            <thead>
+              <tr>
+                <th style={{ width: "100px" }}>項目</th>
+                <th style={{ width: "150px" }}>値</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mile</td>
+                <td>
+                  <input
+                    type="number"
+                    value={currentMile}
+                    onChange={(e) => updateMile(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      textAlign: "right",
+                      fontSize: "14px",
+                      padding: "4px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Sky Coin</td>
+                <td>
+                  <input
+                    type="number"
+                    value={currentCoinInput}
+                    onChange={(e) => updateCoin(Number(e.target.value))}
+                    style={{
+                      width: "100%",
+                      textAlign: "right",
+                      fontSize: "14px",
+                      padding: "4px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        {/* 入力欄 */}
-        <Typography variant="subtitle1" gutterBottom style={{ marginTop: 20 }}>
-          現在マイル・スカイコイン入力
-        </Typography>
-
-        <table className="table-bordered" style={{ marginBottom: 10 }}>
-          <thead>
-            <tr>
-              <th style={{ width: "150px" }}>項目</th>
-              <th style={{ width: "100px" }}>値</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Mile</td>
-              <td>
-                <input
-                  type="number"
-                  value={currentMile}
-                  onChange={(e) => updateMile(Number(e.target.value))}
-                  style={{
-                    width: "100%",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    padding: "4px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td>Sky Coin</td>
-              <td>
-                <input
-                  type="number"
-                  value={currentCoinInput}
-                  onChange={(e) => updateCoin(Number(e.target.value))}
-                  style={{
-                    width: "100%",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    padding: "4px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        {/* 計算結果 */}
-        <table className="table-bordered">
-          <thead>
-            <tr>
-              <th style={{ width: "150px" }}>項目</th>
-              <th style={{ width: "100px" }}>値</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>合計マイル</td>
-              <td style={{ textAlign: "right" }}>{totalMile}</td>
-            </tr>
-            <tr>
-              <td>Coin（{roundedMiles} × {rate}）</td>
-              <td style={{ textAlign: "right" }}>{coinFromMiles} </td>
-            </tr>
-            <tr>
-              <td>Coin合計</td>
-              <td style={{ textAlign: "right" }}>{totalCoinWithCurrent}</td>
-            </tr>
-          </tbody>
-        </table>
+          {/* 右：計算結果 */}
+          <table className="table-bordered" style={{ flex: 1 }}>
+            <thead>
+              <tr>
+                <th style={{ width: "100px" }}>項目</th>
+                <th style={{ width: "150px" }}>値</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>合計マイル</td>
+                <td style={{ textAlign: "right" }}>{totalMile}</td>
+              </tr>
+              <tr>
+                <td>Coin（{roundedMiles} × {rate}）</td>
+                <td style={{ textAlign: "right" }}>{coinFromMiles}</td>
+              </tr>
+              <tr>
+                <td>Coin合計</td>
+                <td style={{ textAlign: "right" }}>{totalCoinWithCurrent}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </CardContent>
     </Card>
   );
