@@ -93,16 +93,54 @@ export default function StatusPanel({ flights }) {
   const totalCoinWithCurrent = r.totalCoinWithCurrent;
   const rate = r.rate;
 
+  // ---------------------------------------------------------
+  // 路線別 PP 試算（calcPPMile と同じロジック）
+  // ---------------------------------------------------------
+  const sectionKeys = Object.keys(DB.sections);
+
+  const [selectedSection, setSelectedSection] = useState("HND-OKA");
+  const [unitPrice, setUnitPrice] = useState(0);
+  const [classType, setClassType] = useState("H");
+
+  const sec = DB.sections[selectedSection];
+  const secMile = sec?.mile ?? 0;
+
+  const cutoff = new Date("2026-05-19");
+  const todayDate = new Date();
+
+  const classes =
+    todayDate < cutoff
+      ? { ...DB.oldClasses, ...DB.newClasses }
+      : DB.newClasses;
+
+  const cls = classes[classType];
+
+  const ppPerFlight =
+    cls ? Math.floor(secMile * cls.rate * 2 + cls.point) : 0;
+
+  const count =
+    unitPrice > 0 ? Math.floor(totalCoinWithCurrent / unitPrice) : 0;
+
+  const ppTotalRoute = count * ppPerFlight;
+
+  // ---------------------------------------------------------
+  // 路線別 PP 試算の折りたたみ
+  // ---------------------------------------------------------
+  const [showRouteCalc, setShowRouteCalc] = useState(false);
+
+  const toggleRouteCalc = () => {
+    setShowRouteCalc(!showRouteCalc);
+  };
+
   return (
     <Card style={{ marginBottom: 20 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          PP / Mile 集計
+          PP計
         </Typography>
 
-        {/* PP 表 ＋ 未来 Mile を横並び */}
+        {/* PP表 + 未来Mile 横並び */}
         <div style={{ display: "flex", gap: "20px", marginTop: 10 }}>
-          {/* PP 表 */}
           <table className="table-bordered" style={{ flex: 1 }}>
             <thead>
               <tr>
@@ -138,7 +176,6 @@ export default function StatusPanel({ flights }) {
             </tbody>
           </table>
 
-          {/* 未来 Mile（右隣） */}
           <table className="table-bordered" style={{ flex: 1 }}>
             <thead>
               <tr>
@@ -163,25 +200,17 @@ export default function StatusPanel({ flights }) {
           </table>
         </div>
 
-        {/* 横並びブロック（入力＋計算結果） */}
+        {/* 入力＋計算結果 */}
         <Typography variant="subtitle1" gutterBottom style={{ marginTop: 20 }}>
-          現在マイル・スカイコイン入力 ＋ 計算結果
+          マイル→SkyCoin試算
         </Typography>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "20px",
-            marginTop: 10,
-          }}
-        >
-          {/* 左：入力欄 */}
+        <div style={{ display: "flex", gap: "20px", marginTop: 10 }}>
           <table className="table-bordered" style={{ flex: 1 }}>
             <thead>
               <tr>
-                <th style={{ width: "100px" }}>項目</th>
-                <th style={{ width: "150px" }}>値</th>
+                <th>項目</th>
+                <th>値</th>
               </tr>
             </thead>
             <tbody>
@@ -192,13 +221,6 @@ export default function StatusPanel({ flights }) {
                     type="number"
                     value={currentMile}
                     onChange={(e) => updateMile(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      textAlign: "right",
-                      fontSize: "14px",
-                      padding: "4px",
-                      boxSizing: "border-box",
-                    }}
                   />
                 </td>
               </tr>
@@ -209,42 +231,114 @@ export default function StatusPanel({ flights }) {
                     type="number"
                     value={currentCoinInput}
                     onChange={(e) => updateCoin(Number(e.target.value))}
-                    style={{
-                      width: "100%",
-                      textAlign: "right",
-                      fontSize: "14px",
-                      padding: "4px",
-                      boxSizing: "border-box",
-                    }}
                   />
                 </td>
               </tr>
             </tbody>
           </table>
 
-          {/* 右：計算結果 */}
           <table className="table-bordered" style={{ flex: 1 }}>
             <thead>
               <tr>
-                <th style={{ width: "100px" }}>項目</th>
-                <th style={{ width: "150px" }}>値</th>
+                <th>項目</th>
+                <th>値</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>合計マイル</td>
-                <td style={{ textAlign: "right" }}>{totalMile}</td>
+                <td>{totalMile}</td>
               </tr>
               <tr>
                 <td>Coin（{roundedMiles} × {rate}）</td>
-                <td style={{ textAlign: "right" }}>{coinFromMiles}</td>
+                <td>{coinFromMiles}</td>
               </tr>
               <tr>
                 <td>Coin合計</td>
-                <td style={{ textAlign: "right" }}>{totalCoinWithCurrent}</td>
+                <td>{totalCoinWithCurrent}</td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        {/* 路線別 PP 試算（折りたたみ） */}
+        <div style={{ marginTop: 20 }}>
+          <button
+            onClick={toggleRouteCalc}
+            style={{
+              backgroundColor: "#1976d2",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "6px 12px",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+          >
+            {showRouteCalc ? "▲ 路線別 PP 試算を閉じる" : "▶ 路線別 PP 試算を開く"}
+          </button>
+
+          {showRouteCalc && (
+            <table className="table-bordered" style={{ width: "100%", marginTop: 10 }}>
+              <thead>
+                <tr>
+                  <th>路線</th>
+                  <th>単価</th>
+                  <th>回数</th>
+                  <th>クラス</th>
+                  <th>PP単価</th>
+                  <th>PP計</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>
+                    <select
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                      style={{ width: "100%", fontSize: "14px" }}
+                    >
+                      {sectionKeys.map((key) => (
+                        <option key={key} value={key}>
+                          {key}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+                  <td>
+                    <input
+                      type="number"
+                      value={unitPrice}
+                      onChange={(e) => setUnitPrice(Number(e.target.value))}
+                      style={{ width: "100%", textAlign: "right" }}
+                    />
+                  </td>
+
+                  <td style={{ textAlign: "right" }}>{count}</td>
+
+                  <td>
+                    <select
+                      value={classType}
+                      onChange={(e) => setClassType(e.target.value)}
+                      style={{ width: "100%", fontSize: "14px" }}
+                    >
+                      {Object.keys(DB.newClasses).map((key) => (
+                        <option key={key} value={key}>
+                          {key}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+                  <td style={{ textAlign: "right" }}>{ppPerFlight}</td>
+
+                  <td style={{ textAlign: "right" }}>{ppTotalRoute}</td>
+                </tr>
+              </tbody>
+            </table>
+          )}
         </div>
       </CardContent>
     </Card>
