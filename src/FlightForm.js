@@ -21,32 +21,31 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
     note: ""
   });
 
-useEffect(() => {
-  if (editData) {
-    setForm({
-      id: editData.id,
-      date: editData.date,
-      pay: editData.pay,
-      classType: editData.classType,
-      from: editData.from,
-      to: editData.to,
-      kakudo: editData.kakudo,
-      note: editData.note ?? ""
-    });
-  } else {
-    setForm({
-      id: null,
-      date: nextMonth,
-      pay: "会社",
-      classType: "H",
-      from: "HND",
-      to: "OKA",
-      kakudo: 60,
-      note: ""
-    });
-  }
-}, [editData, nextMonth]);
-
+  useEffect(() => {
+    if (editData) {
+      setForm({
+        id: editData.id,
+        date: editData.date,
+        pay: editData.pay,
+        classType: editData.classType,
+        from: editData.from,
+        to: editData.to,
+        kakudo: editData.kakudo,
+        note: editData.note ?? ""
+      });
+    } else {
+      setForm({
+        id: null,
+        date: nextMonth,
+        pay: "会社",
+        classType: "H",
+        from: "HND",
+        to: "OKA",
+        kakudo: 60,
+        note: ""
+      });
+    }
+  }, [editData, nextMonth]);
 
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
@@ -78,19 +77,18 @@ useEffect(() => {
         </TextField>
 
         {/* クラス */}
-{/* クラス */}
-<TextField
-  label="クラス"
-  select
-  value={form.classType}
-  onChange={handleChange("classType")}
->
-  {Object.entries(DB.newClasses).map(([key, value]) => (
-    <MenuItem key={key} value={key}>
-      {key}（{value.desc.replace(/<|>/g, "")}）
-    </MenuItem>
-  ))}
-</TextField>
+        <TextField
+          label="クラス"
+          select
+          value={form.classType}
+          onChange={handleChange("classType")}
+        >
+          {Object.entries(DB.newClasses).map(([key, value]) => (
+            <MenuItem key={key} value={key}>
+              {key}（{value.desc.replace(/<|>/g, "")}）
+            </MenuItem>
+          ))}
+        </TextField>
 
         {/* 路線選択 */}
         <TextField
@@ -112,51 +110,52 @@ useEffect(() => {
           })}
         </TextField>
 
-        {/* 出発 */}
-        <TextField
-          label="出発"
-          select
-          value={form.from}
-          onChange={(e) => {
-            const newFrom = e.target.value;
-            const newRoute = `${newFrom}-${form.to}`;
-
-            if (DB.sections[newRoute]) {
+        {/* 出発・反転・到着 */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          {/* 出発 */}
+          <TextField
+            label="出発"
+            select
+            value={form.from}
+            onChange={(e) => {
+              const newFrom = e.target.value;
               setForm({ ...form, from: newFrom });
-            } else {
-              setForm({ ...form, from: newFrom });
-            }
-          }}
-        >
-          {Object.keys(DB.airports).map((code) => (
-            <MenuItem key={code} value={code}>
-              {code}（{DB.airports[code]}）
-            </MenuItem>
-          ))}
-        </TextField>
+            }}
+          >
+            {Object.keys(DB.airports).map((code) => (
+              <MenuItem key={code} value={code}>
+                {code}（{DB.airports[code]}）
+              </MenuItem>
+            ))}
+          </TextField>
 
-        {/* 到着 */}
-        <TextField
-          label="到着"
-          select
-          value={form.to}
-          onChange={(e) => {
-            const newTo = e.target.value;
-            const newRoute = `${form.from}-${newTo}`;
+          {/* 反転ボタン */}
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setForm({ ...form, from: form.to, to: form.from });
+            }}
+          >
+            ⇄ 反転
+          </Button>
 
-            if (DB.sections[newRoute]) {
+          {/* 到着 */}
+          <TextField
+            label="到着"
+            select
+            value={form.to}
+            onChange={(e) => {
+              const newTo = e.target.value;
               setForm({ ...form, to: newTo });
-            } else {
-              setForm({ ...form, to: newTo });
-            }
-          }}
-        >
-          {Object.keys(DB.airports).map((code) => (
-            <MenuItem key={code} value={code}>
-              {code}（{DB.airports[code]}）
-            </MenuItem>
-          ))}
-        </TextField>
+            }}
+          >
+            {Object.keys(DB.airports).map((code) => (
+              <MenuItem key={code} value={code}>
+                {code}（{DB.airports[code]}）
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
 
         {/* 確度 */}
         <TextField
@@ -179,6 +178,7 @@ useEffect(() => {
         <Button variant="contained" onClick={handleSubmit}>
           {editData ? "更新" : "追加"}
         </Button>
+
       </Stack>
     </DialogContent>
   );
