@@ -77,19 +77,25 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         </TextField>
 
         {/* クラス */}
-{/* クラス */}
-<TextField
-  label="クラス"
-  select
-  value={form.classType}
-  onChange={handleChange("classType")}
->
-  {Object.entries(DB.newClasses).map(([key, value]) => (
-    <MenuItem key={key} value={key}>
-      {key}（{value.desc.replace(/<|>/g, "")}）
-    </MenuItem>
-  ))}
-</TextField>
+        <TextField label="クラス" select value={form.classType} onChange={handleChange("classType")}>
+          {(() => {
+            const cutoff = new Date("2026-05-19");
+            const current = new Date(form.date);
+            const classes =
+              current < cutoff ? { ...DB.oldClasses, ...DB.newClasses } : DB.newClasses;
+
+            return Object.keys(classes).map((c) => (
+              <MenuItem key={c} value={c}>{c}</MenuItem>
+            ));
+          })()}
+        </TextField>
+
+        {/* クラス説明 */}
+        <div style={{ fontSize: "0.8rem", color: "#555" }}>
+          {DB.newClasses[form.classType]?.desc ??
+            DB.oldClasses[form.classType]?.desc ??
+            ""}
+        </div>
 
         {/* 路線選択 */}
         <TextField
@@ -134,6 +140,10 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
           ))}
         </TextField>
 
+        <div style={{ fontSize: "0.8rem", color: "#555" }}>
+          {DB.airports[form.from] ?? ""}
+        </div>
+
         {/* 到着 */}
         <TextField
           label="到着"
@@ -156,6 +166,10 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
             </MenuItem>
           ))}
         </TextField>
+
+        <div style={{ fontSize: "0.8rem", color: "#555" }}>
+          {DB.airports[form.to] ?? ""}
+        </div>
 
         {/* 確度 */}
         <TextField

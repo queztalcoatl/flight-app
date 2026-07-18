@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { TextField, Button, Stack, MenuItem, DialogContent } from "@mui/material";
-import { DB } from "./DB";
+import { DB } from "./DB"; // ← クラス選択にDBを利用
 
 export default function FlightForm({ onAdd, onUpdate, editData }) {
+  // 今日の日付を YYYY-MM-DD 形式で取得
+  const today = new Date().toISOString().slice(0, 10);
+
   const nextMonth = (() => {
     const d = new Date();
-    d.setMonth(d.getMonth() + 1);
-    d.setDate(1);
+    d.setMonth(d.getMonth() + 1); // ★ 1か月後へ
+    d.setDate(1);                 // ★ その月の1日に固定
     return d.toISOString().slice(0, 10);
   })();
 
   const [form, setForm] = useState({
     id: null,
-    date: nextMonth,
-    pay: "会社",
-    classType: "H",
-    from: "HND",
-    to: "OKA",
-    kakudo: 60,
-    note: ""
+    date: nextMonth, // デフォルト：今日
+    pay: "会社", // デフォルト：会社
+    classType: "H", // Object.keys(DB.classes)[9], デフォルト：H
+    from: "HND", // デフォルト：HND
+    to: "OKA", // デフォルト：HND
+    kakudo: 60, // デフォルト：60
+    note: "" // 備考追加
   });
 
+  // 編集モードなら値をセット
   useEffect(() => {
     if (editData) {
       setForm({
@@ -31,21 +35,22 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         from: editData.from,
         to: editData.to,
         kakudo: editData.kakudo,
-        note: editData.note ?? ""
+        note: editData.note ?? "" //備考
       });
     } else {
       setForm({
         id: null,
         date: nextMonth,
         pay: "会社",
+        // classType: Object.keys(DB.classes)[4],
         classType: "H",
         from: "HND",
         to: "OKA",
         kakudo: 60,
-        note: ""
+        note: "" //備考
       });
     }
-  }, [editData]);
+  }, [editData, today]);
 
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
@@ -60,7 +65,6 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
   return (
     <DialogContent>
       <Stack spacing={2}>
-
         {/* 日付 */}
         <TextField
           label="日付"
@@ -77,85 +81,48 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         </TextField>
 
         {/* クラス */}
-{/* クラス */}
-<TextField
-  label="クラス"
-  select
-  value={form.classType}
-  onChange={handleChange("classType")}
->
-  {Object.entries(DB.newClasses).map(([key, value]) => (
-    <MenuItem key={key} value={key}>
-      {key}（{value.desc.replace(/<|>/g, "")}）
-    </MenuItem>
-  ))}
-</TextField>
-
-        {/* 路線選択 */}
         <TextField
-          label="路線"
+          label="クラス"
           select
-          value={`${form.from}-${form.to}`}
-          onChange={(e) => {
-            const [from, to] = e.target.value.split("-");
-            setForm({ ...form, from, to });
-          }}
+          value={form.classType}
+          onChange={handleChange("classType")}
         >
-          {Object.keys(DB.sections).map((route) => {
-            const [from, to] = route.split("-");
-            return (
-              <MenuItem key={route} value={route}>
-                {route}（{DB.airports[from]} → {DB.airports[to]}）
+          {(() => {
+            const cutoff = new Date("2026-05-19");
+            const current = new Date(form.date);
+            const classes =
+              current < cutoff
+                ? { ...DB.oldClasses, ...DB.newClasses } // ★ 過去は全部
+                : DB.newClasses; // ★ 新規はA〜Jのみ
+
+            return Object.keys(classes).map((c) => (
+              <MenuItem key={c} value={c}>
+                {c}
               </MenuItem>
-            );
-          })}
+            ));
+          })()}
         </TextField>
+
+        {/* ★ クラス注釈（新クラスのみ） */}
+        <div style={{ marginTop: 4, fontSize: "0.8rem", color: "#555" }}>
+          {DB.newClasses[form.classType]?.desc ??
+            DB.oldClasses[form.classType]?.desc ??
+            ""}
+        </div>
 
         {/* 出発 */}
         <TextField
           label="出発"
-          select
           value={form.from}
-          onChange={(e) => {
-            const newFrom = e.target.value;
-            const newRoute = `${newFrom}-${form.to}`;
-
-            if (DB.sections[newRoute]) {
-              setForm({ ...form, from: newFrom });
-            } else {
-              setForm({ ...form, from: newFrom });
-            }
-          }}
-        >
-          {Object.keys(DB.airports).map((code) => (
-            <MenuItem key={code} value={code}>
-              {code}（{DB.airports[code]}）
-            </MenuItem>
-          ))}
-        </TextField>
+          onChange={(e) => setForm({ ...form, from: e.target.value.toUpperCase() })}
+        />
 
         {/* 到着 */}
         <TextField
           label="到着"
-          select
           value={form.to}
-          onChange={(e) => {
-            const newTo = e.target.value;
-            const newRoute = `${form.from}-${newTo}`;
-
-            if (DB.sections[newRoute]) {
-              setForm({ ...form, to: newTo });
-            } else {
-              setForm({ ...form, to: newTo });
-            }
-          }}
-        >
-          {Object.keys(DB.airports).map((code) => (
-            <MenuItem key={code} value={code}>
-              {code}（{DB.airports[code]}）
-            </MenuItem>
-          ))}
-        </TextField>
+          onChange={(e) => setForm({ ...form, to: e.target.value.toUpperCase() })}
+        />
 
         {/* 確度 */}
         <TextField
@@ -165,6 +132,11 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
           onChange={handleChange("kakudo")}
         />
 
+        {/* 追加／更新ボタン */}
+        <Button variant="contained" onClick={handleSubmit}>
+          {editData ? "更新" : "追加"}
+        </Button>
+
         {/* 備考 */}
         <TextField
           label="備考"
@@ -173,11 +145,6 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
           onChange={(e) => setForm({ ...form, note: e.target.value })}
           fullWidth
         />
-
-        {/* 追加／更新 */}
-        <Button variant="contained" onClick={handleSubmit}>
-          {editData ? "更新" : "追加"}
-        </Button>
       </Stack>
     </DialogContent>
   );

@@ -4,10 +4,10 @@ import "./StatusPanel.css";
 import { DB } from "./DB";
 import { db } from "./firebase";
 import { ref, set, onValue } from "firebase/database";
-export default function StatusPanel({ flights, year }) {
+
+export default function StatusPanel({ flights }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const currentYear = today.getFullYear();
 
   const initPP = () => ({ jisseki: 0, p100: 0, p80: 0, p60: 0 });
 
@@ -19,64 +19,37 @@ export default function StatusPanel({ flights, year }) {
   let milePersonalFuture = 0;
   let mileTotalFuture = 0;
 
-flights.forEach((f) => {
-  const d = new Date(f.date);
-  d.setHours(0, 0, 0, 0);
+  flights.forEach((f) => {
+    const d = new Date(f.date);
+    d.setHours(0, 0, 0, 0);
 
-  const isCompany = f.pay === "会社";
-  const bucket = isCompany ? ppCompany : ppPersonal;
+    const isCompany = f.pay === "会社";
+    const bucket = isCompany ? ppCompany : ppPersonal;
 
-  // PP集計（そのまま）
-  if (f.kakudo === 100) {
-    bucket.p100 += f.pp;
-    ppTotal.p100 += f.pp;
-  }
-  if (f.kakudo >= 80) {
-    bucket.p80 += f.pp;
-    ppTotal.p80 += f.pp;
-  }
-  if (f.kakudo >= 60) {
-    bucket.p60 += f.pp;
-    ppTotal.p60 += f.pp;
-  }
-  if (d < today && f.kakudo === 100) {
-    bucket.jisseki += f.pp;
-    ppTotal.jisseki += f.pp;
-  }
+    if (f.kakudo === 100) {
+      bucket.p100 += f.pp;
+      ppTotal.p100 += f.pp;
+    }
+    if (f.kakudo >= 80) {
+      bucket.p80 += f.pp;
+      ppTotal.p80 += f.pp;
+    }
+    if (f.kakudo >= 60) {
+      bucket.p60 += f.pp;
+      ppTotal.p60 += f.pp;
+    }
 
-  // 🔥 Mile集計（デバッグ付き）
-  console.log("year:", year, "currentYear:", currentYear, "date:", f.date);
+    if (d < today && f.kakudo === 100) {
+      bucket.jisseki += f.pp;
+      ppTotal.jisseki += f.pp;
+    }
 
-if (year < currentYear) {
-  return;
-}
-
-if (year === currentYear) {
-  if (d > today && Number(f.kakudo) === 100) { // ← 型変換追加
-    console.log("add current year mile:", f.mile, f.date);
-    if (isCompany) mileCompanyFuture += f.mile;
-    else milePersonalFuture += f.mile;
-    mileTotalFuture += f.mile;
-  }
-} else if (year > currentYear) {
-  const yearStart = new Date(year, 0, 1);
-  yearStart.setHours(0, 0, 0, 0);
-
-  console.log("future year check:", f.date, ">= yearStart:", yearStart);
-
-  if (d >= yearStart && Number(f.kakudo) === 100) { // ← 型変換追加
-    console.log("add future year mile:", f.mile, f.date);
-    if (isCompany) mileCompanyFuture += f.mile;
-    else milePersonalFuture += f.mile;
-    mileTotalFuture += f.mile;
-  }
-}
-
-
-});
-
-
-
+    if (d > today && f.kakudo === 100) {
+      if (isCompany) mileCompanyFuture += f.mile;
+      else milePersonalFuture += f.mile;
+      mileTotalFuture += f.mile;
+    }
+  });
 
   // ---------------------------------------------------------
   // 🔥 Realtime 永続化
@@ -123,41 +96,41 @@ if (year === currentYear) {
   // ---------------------------------------------------------
   // 路線別 PP 試算（calcPPMile と同じロジック）
   // ---------------------------------------------------------
-//  const sectionKeys = Object.keys(DB.sections);
-//
-//  const [selectedSection, setSelectedSection] = useState("HND-OKA");
-//  const [unitPrice, setUnitPrice] = useState(0);
-//  const [classType, setClassType] = useState("H");
-//
-//  const sec = DB.sections[selectedSection];
-//  const secMile = sec?.mile ?? 0;
-//
-//  const cutoff = new Date("2026-05-19");
-//  const todayDate = new Date();
-//
-//  const classes =
-//    todayDate < cutoff
-//      ? { ...DB.oldClasses, ...DB.newClasses }
-//      : DB.newClasses;
-//
-//  const cls = classes[classType];
-//
-//  const ppPerFlight =
-//    cls ? Math.floor(secMile * cls.rate * 2 + cls.point) : 0;
-//
-//  const count =
-//    unitPrice > 0 ? Math.floor(totalCoinWithCurrent / unitPrice) : 0;
-//
-//  const ppTotalRoute = count * ppPerFlight;
-//
-//  // ---------------------------------------------------------
-//  // 路線別 PP 試算の折りたたみ
-//  // ---------------------------------------------------------
-//  const [showRouteCalc, setShowRouteCalc] = useState(false);
-//
-//  const toggleRouteCalc = () => {
-//    setShowRouteCalc(!showRouteCalc);
-//  };
+  const sectionKeys = Object.keys(DB.sections);
+
+  const [selectedSection, setSelectedSection] = useState("HND-OKA");
+  const [unitPrice, setUnitPrice] = useState(0);
+  const [classType, setClassType] = useState("H");
+
+  const sec = DB.sections[selectedSection];
+  const secMile = sec?.mile ?? 0;
+
+  const cutoff = new Date("2026-05-19");
+  const todayDate = new Date();
+
+  const classes =
+    todayDate < cutoff
+      ? { ...DB.oldClasses, ...DB.newClasses }
+      : DB.newClasses;
+
+  const cls = classes[classType];
+
+  const ppPerFlight =
+    cls ? Math.floor(secMile * cls.rate * 2 + cls.point) : 0;
+
+  const count =
+    unitPrice > 0 ? Math.floor(totalCoinWithCurrent / unitPrice) : 0;
+
+  const ppTotalRoute = count * ppPerFlight;
+
+  // ---------------------------------------------------------
+  // 路線別 PP 試算の折りたたみ
+  // ---------------------------------------------------------
+  const [showRouteCalc, setShowRouteCalc] = useState(false);
+
+  const toggleRouteCalc = () => {
+    setShowRouteCalc(!showRouteCalc);
+  };
 
   return (
     <Card style={{ marginBottom: 20 }}>
@@ -289,8 +262,7 @@ if (year === currentYear) {
         </div>
 
         {/* 路線別 PP 試算（折りたたみ） */}
-        {/*
-         <div style={{ marginTop: 20 }}>
+        <div style={{ marginTop: 20 }}>
           <button
             onClick={toggleRouteCalc}
             style={{
@@ -368,7 +340,6 @@ if (year === currentYear) {
             </table>
           )}
         </div>
-        */}
       </CardContent>
     </Card>
   );

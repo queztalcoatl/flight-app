@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import FlightForm from "./FlightForm";
 import FlightTable from "./FlightTable";
 import StatusPanel from "./StatusPanel";
 import { DB } from "./DB";
-import { Dialog, DialogActions, Button, TextField, MenuItem } from "@mui/material";
+import { Dialog, DialogActions, Button } from "@mui/material";
 import { db } from "./firebase";
 import { ref, onValue, update, remove } from "firebase/database";
 
@@ -13,7 +13,7 @@ import { ref, onValue, update, remove } from "firebase/database";
 const normalize = (str) => String(str).replace(/[^A-Za-z]/g, "").toUpperCase();
 
 // ------------------------------
-// PP/Mile 計算（新旧クラス対応版・完全修正版）
+// PP/Mile 計算（新旧クラス対応版）
 // ------------------------------
 const calcPPMile = (from, to, classType, date) => {
   const fromNorm = normalize(from);
@@ -28,21 +28,14 @@ const calcPPMile = (from, to, classType, date) => {
   const sec = secKey ? DB.sections[secKey] : null;
   if (!sec) return { pp: 0, mile: 0 };
 
-  // ★ 日付正規化（YYYY-MM-DDに統一）
-  const normalizedDate = date
-    .replace(/\/|-/g, "-")
-    .split("-")
-    .map((v, i) => (i === 1 || i === 2 ? v.padStart(2, "0") : v))
-    .join("-");
-
+  // 日付でクラス体系を切り替え
   const cutoff = new Date("2026-05-19");
-  const current = new Date(normalizedDate);
+  const current = new Date(date);
 
-  // ★ 新旧クラス体系（fallback付き）
   const classes =
     current < cutoff
-      ? { ...DB.oldClasses, ...DB.newClasses }
-      : { ...DB.newClasses, ...DB.oldClasses };
+      ? { ...DB.oldClasses, ...DB.newClasses } // 過去は旧＋新
+      : DB.newClasses;                         // 以降は新のみ
 
   const cls = classes[classType];
   if (!cls) return { pp: 0, mile: 0 };
@@ -58,33 +51,6 @@ export default function App() {
   const [flights, setFlights] = useState([]);
 
   // ------------------------------
-  // 年度選択（デフォルト＝今日の年）
-  // ------------------------------
-  const [year, setYear] = useState(new Date().getFullYear());
-
-// 年度フィルタ（完全版）
-const filterByYear = (flights, year) => {
-  return flights.filter((f) => {
-    if (!f.date) return false;
-
-    // 日付を YYYY-MM-DD に正規化
-    const normalized = f.date
-      .replace(/\/|-/g, "-") // 区切り統一
-      .split("-")
-      .map((v, i) => (i === 1 || i === 2 ? v.padStart(2, "0") : v)) // 月日を0埋め
-      .join("-");
-
-    const d = new Date(normalized);
-    if (isNaN(d)) return false;
-
-    // 年度判定
-    return d.getFullYear() === year;
-  });
-};
-
-
-
-  // ------------------------------
   // Firebase 読み込み
   // ------------------------------
   useEffect(() => {
@@ -95,25 +61,6 @@ const filterByYear = (flights, year) => {
       setFlights(loadedFlights);
     });
   }, []);
-
-// 年度別フライト（useMemoでリアクティブ化）
-const yearlyFlights = useMemo(() => {
-  return filterByYear(flights, year);
-}, [flights, year]);
-
-// デバッグログ
-useEffect(() => {
-  console.log("Loaded flights:", flights);
-  console.log("Yearly flights:", yearlyFlights);
-}, [flights, year]);
-
-
-  // ------------------------------
-  // 日付ソート
-  // ------------------------------
-  const sortedFlights = [...yearlyFlights].sort(
-    (a, b) => new Date(a.date) - new Date(b.date)
-  );
 
   // ------------------------------
   // モーダル管理
@@ -191,7 +138,7 @@ useEffect(() => {
   };
 
   // ------------------------------
-  // CSV インポート
+  // CSV インポート（列ズレ修正済）
   // ------------------------------
   const importFlights = (imported) => {
     const recalculated = imported.map((f) => {
@@ -219,28 +166,18 @@ useEffect(() => {
   };
 
   // ------------------------------
+  // 日付ソート
+  // ------------------------------
+  const sortedFlights = [...flights].sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
+
+  // ------------------------------
   // UI
   // ------------------------------
   return (
     <div style={{ padding: 20 }}>
-
-      {/* 年度選択 */}
-      <TextField
-        label="年度"
-        select
-        value={year}
-        onChange={(e) => setYear(Number(e.target.value))}
-        style={{ width: 120, marginBottom: 20 }}
-      >
-        {[2026, 2027].map((y) => (
-          <MenuItem key={y} value={y}>{y}年</MenuItem>
-        ))}
-      </TextField>
-
-      {/* 年度別 PP/Mile 集計 */}
-<StatusPanel flights={sortedFlights} year={year} />
-
-
+      <StatusPanel flights={sortedFlights} />
 
       <Button variant="contained" onClick={openAddForm}>
         フライト追加
