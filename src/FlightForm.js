@@ -3,6 +3,7 @@ import { TextField, Button, Stack, MenuItem, DialogContent } from "@mui/material
 import { DB } from "./DB";
 
 export default function FlightForm({ onAdd, onUpdate, editData }) {
+  // 翌月初日をデフォルト日付に設定
   const nextMonth = (() => {
     const d = new Date();
     d.setMonth(d.getMonth() + 1);
@@ -10,6 +11,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
     return d.toISOString().slice(0, 10);
   })();
 
+  // フォーム初期値
   const [form, setForm] = useState({
     id: null,
     date: nextMonth,
@@ -21,6 +23,7 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
     note: ""
   });
 
+  // 編集時または新規時の初期化
   useEffect(() => {
     if (editData) {
       setForm({
@@ -47,12 +50,24 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
     }
   }, [editData, nextMonth]);
 
-  const handleChange = (field) => (e) => {
-    setForm({ ...form, [field]: e.target.value });
-  };
+  // 入力変更処理（確度変更時は即再計算）
+const handleChange = (field) => (e) => {
+  const newValue = e.target.value;
+  const updatedForm = { ...form, [field]: newValue };
+  setForm(updatedForm);
 
+  // 確度変更時に即再計算・再取得
+  if (field === "kakudo" && editData) {
+    const data = { ...updatedForm, id: editData.id };
+    onUpdate(data); // Firebase更新
+  }
+};
+
+
+  // 追加／更新処理
   const handleSubmit = () => {
     const data = { ...form, id: form.id ?? editData?.id ?? null };
+      console.log("✏️ handleSubmit data:", data);
     if (editData) onUpdate(data);
     else onAdd(data);
   };
@@ -60,7 +75,6 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
   return (
     <DialogContent>
       <Stack spacing={2}>
-
         {/* 日付 */}
         <TextField
           label="日付"
@@ -178,7 +192,6 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
         <Button variant="contained" onClick={handleSubmit}>
           {editData ? "更新" : "追加"}
         </Button>
-
       </Stack>
     </DialogContent>
   );

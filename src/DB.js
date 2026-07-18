@@ -31,7 +31,6 @@ export const DB = {
     KMQ: "小松",
     NTQ: "能登",
 
- 
     OKJ: "岡山",
     HIJ: "広島",
     IWK: "岩国",
@@ -59,7 +58,7 @@ export const DB = {
   // 路線マイル一覧（ANA 国内・国際線）
   // ---------------------------------------------------------
   sections: {
- "--------- 主要 ---------": null,
+    "--------- 主要 ---------": null,
     "HND-OKA": { mile: 984 },
     "OKA-HND": { mile: 984 },
     "HND-CTS": { mile: 510 },
@@ -68,7 +67,8 @@ export const DB = {
     "ISG-HND": { mile: 1224 },
     "OKA-ISG": { mile: 247 },
     "ISG-OKA": { mile: 247 },
- "--------- 北海道 ---------": null,        
+
+    "--------- 北海道 ---------": null,
     "HND-WKJ": { mile: 679 },
     "HND-MMB": { mile: 609 },
     "HND-AKJ": { mile: 576 },
@@ -77,7 +77,8 @@ export const DB = {
     "HND-KUH": { mile: 555 },
     "HND-OBO": { mile: 526 },
     "HND-HKD": { mile: 424 },
- "--------- 東北 ---------": null,        
+
+    "--------- 東北 ---------": null,
     "HND-AXT": { mile: 279 },
     "HND-ONJ": { mile: 314 },
     "HND-SYO": { mile: 218 },
@@ -87,10 +88,12 @@ export const DB = {
     "HND-TOY": { mile: 176 },
     "HND-KMQ": { mile: 211 },
     "HND-NTQ": { mile: 207 },
- "--------- 中部、関西 ---------": null,        
+
+    "--------- 中部、関西 ---------": null,
     "HND-NGO": { mile: 193 },
     "HND-ITM": { mile: 280 },
- "--------- 中国 ---------": null,        
+
+    "--------- 中国 ---------": null,
     "HND-OKJ": { mile: 356 },
     "HND-HIJ": { mile: 414 },
     "HND-IWK": { mile: 457 },
@@ -102,7 +105,8 @@ export const DB = {
     "HND-TKS": { mile: 329 },
     "HND-MYJ": { mile: 438 },
     "HND-KCZ": { mile: 393 },
- "--------- 九州 ---------": null,  
+
+    "--------- 九州 ---------": null,
     "HND-KKJ": { mile: 534 },
     "HND-FUK": { mile: 567 },
     "HND-HSG": { mile: 584 },
@@ -111,7 +115,8 @@ export const DB = {
     "HND-NGS": { mile: 610 },
     "HND-KMI": { mile: 561 },
     "HND-KOJ": { mile: 601 },
- "--------- 沖縄 ---------": null,  
+
+    "--------- 沖縄 ---------": null,
     "HND-MMY": { mile: 1158 },
   },
 
@@ -178,5 +183,44 @@ export const DB = {
       totalCoinWithCurrent,
       rate
     };
+  },
+
+  // ---------------------------------------------------------
+  // PP / Mile 計算（完全版）
+  // ---------------------------------------------------------
+  calcPPMile: function(from, to, classType, date) {
+    const key = `${from}-${to}`;
+    const sec = DB.sections[key];
+    if (!sec || !sec.mile) {
+      return { pp: 0, mile: 0 };
+    }
+
+    const baseMile = sec.mile;
+
+    // 旧クラス / 新クラスの切り替え（2026/05/19）
+    const border = new Date("2026-05-19");
+    const d = date ? new Date(date) : border;
+    const isNew = d >= border;
+
+    const cls =
+      (isNew ? DB.newClasses[classType] : DB.oldClasses[classType]) ||
+      DB.newClasses[classType] ||
+      DB.oldClasses[classType];
+
+    if (!cls) {
+      return { pp: 0, mile: baseMile };
+    }
+
+    const rate = cls.rate;
+    const point = cls.point;
+
+    // PP: ANA 国内線の一般的な式
+    //   baseMile × rate × 2 + point
+    const pp = Math.floor(baseMile * rate * 2 + point);
+
+    // Mile: 実績値に合わせた係数（rate × 2.3）
+    const mile = Math.floor(baseMile * rate * 2.3);
+
+    return { pp, mile };
   }
 };

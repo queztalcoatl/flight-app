@@ -23,28 +23,33 @@ flights.forEach((f) => {
   const d = new Date(f.date);
   d.setHours(0, 0, 0, 0);
 
+  const flightYear = d.getFullYear();
+  if (flightYear !== year) return;   // ★ 年度フィルタ追加
+
   const isCompany = f.pay === "会社";
   const bucket = isCompany ? ppCompany : ppPersonal;
 
-  // PP集計（そのまま）
-  if (f.kakudo === 100) {
+  const kakudo = Number(f.kakudo);
+
+  if (kakudo === 100) {
     bucket.p100 += f.pp;
     ppTotal.p100 += f.pp;
   }
-  if (f.kakudo >= 80) {
+  if (kakudo >= 80) {
     bucket.p80 += f.pp;
     ppTotal.p80 += f.pp;
   }
-  if (f.kakudo >= 60) {
+  if (kakudo >= 60) {
     bucket.p60 += f.pp;
     ppTotal.p60 += f.pp;
   }
-  if (d < today && f.kakudo === 100) {
+  if (d < today && kakudo === 100) {
     bucket.jisseki += f.pp;
     ppTotal.jisseki += f.pp;
   }
 
-  // 🔥 Mile集計（デバッグ付き）
+  // Mile 集計は既存仕様のまま
+
   console.log("year:", year, "currentYear:", currentYear, "date:", f.date);
 
 if (year < currentYear) {
@@ -74,9 +79,6 @@ if (year === currentYear) {
 
 
 });
-
-
-
 
   // ---------------------------------------------------------
   // 🔥 Realtime 永続化
@@ -119,45 +121,6 @@ if (year === currentYear) {
   const coinFromMiles = r.coinFromMiles;
   const totalCoinWithCurrent = r.totalCoinWithCurrent;
   const rate = r.rate;
-
-  // ---------------------------------------------------------
-  // 路線別 PP 試算（calcPPMile と同じロジック）
-  // ---------------------------------------------------------
-//  const sectionKeys = Object.keys(DB.sections);
-//
-//  const [selectedSection, setSelectedSection] = useState("HND-OKA");
-//  const [unitPrice, setUnitPrice] = useState(0);
-//  const [classType, setClassType] = useState("H");
-//
-//  const sec = DB.sections[selectedSection];
-//  const secMile = sec?.mile ?? 0;
-//
-//  const cutoff = new Date("2026-05-19");
-//  const todayDate = new Date();
-//
-//  const classes =
-//    todayDate < cutoff
-//      ? { ...DB.oldClasses, ...DB.newClasses }
-//      : DB.newClasses;
-//
-//  const cls = classes[classType];
-//
-//  const ppPerFlight =
-//    cls ? Math.floor(secMile * cls.rate * 2 + cls.point) : 0;
-//
-//  const count =
-//    unitPrice > 0 ? Math.floor(totalCoinWithCurrent / unitPrice) : 0;
-//
-//  const ppTotalRoute = count * ppPerFlight;
-//
-//  // ---------------------------------------------------------
-//  // 路線別 PP 試算の折りたたみ
-//  // ---------------------------------------------------------
-//  const [showRouteCalc, setShowRouteCalc] = useState(false);
-//
-//  const toggleRouteCalc = () => {
-//    setShowRouteCalc(!showRouteCalc);
-//  };
 
   return (
     <Card style={{ marginBottom: 20 }}>

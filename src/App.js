@@ -87,14 +87,17 @@ const filterByYear = (flights, year) => {
   // ------------------------------
   // Firebase 読み込み
   // ------------------------------
-  useEffect(() => {
-    const flightsRef = ref(db, "flights");
-    onValue(flightsRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      const loadedFlights = Object.values(data);
-      setFlights(loadedFlights);
-    });
-  }, []);
+useEffect(() => {
+  const flightsRef = ref(db, "flights");
+  onValue(flightsRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    const loadedFlights = Object.values(data);
+    console.log("🔥 Firebase snapshot:", data);
+    console.log("✅ Loaded flights:", loadedFlights);
+    setFlights(loadedFlights);
+  });
+}, []);
+
 
 // 年度別フライト（useMemoでリアクティブ化）
 const yearlyFlights = useMemo(() => {
@@ -162,25 +165,24 @@ useEffect(() => {
   // ------------------------------
   // 編集更新
   // ------------------------------
-  const updateFlight = (updated) => {
-    const { pp, mile } = calcPPMile(
-      updated.from,
-      updated.to,
-      updated.classType,
-      updated.date
-    );
+const updateFlight = (updated) => {
+  const { pp, mile } = calcPPMile(
+    updated.from,
+    updated.to,
+    updated.classType,
+    updated.date
+  );
+  const updatedFlight = { ...updated, pp, mile };
+  console.log("updateFlight recalculated:", updatedFlight);
 
-    const updatedFlight = { ...updated, pp, mile };
+  const flightsRef = ref(db, `flights/${updated.id}`);
+  update(flightsRef, updatedFlight);
+  console.log("📡 Firebase update sent:", updatedFlight);
 
-    const flightsRef = ref(db, `flights/${updated.id}`);
-    update(flightsRef, updatedFlight);
+  setFlights(flights.map((f) => (f.id === updated.id ? updatedFlight : f)));
+  closeForm();
+};
 
-    setFlights(
-      flights.map((f) => (f.id === updated.id ? updatedFlight : f))
-    );
-
-    closeForm();
-  };
 
   // ------------------------------
   // 削除
@@ -239,7 +241,8 @@ useEffect(() => {
       </TextField>
 
       {/* 年度別 PP/Mile 集計 */}
-<StatusPanel flights={sortedFlights} year={year} />
+<StatusPanel flights={flights} year={year} />
+
 
 
 
