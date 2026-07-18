@@ -105,7 +105,8 @@ const yearlyFlights = useMemo(() => {
 useEffect(() => {
   console.log("Loaded flights:", flights);
   console.log("Yearly flights:", yearlyFlights);
-}, [flights, year]);
+}, [flights, year, yearlyFlights]); // ← missing dependencyを追加
+
 
 
   // ------------------------------

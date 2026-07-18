@@ -21,31 +21,32 @@ export default function FlightForm({ onAdd, onUpdate, editData }) {
     note: ""
   });
 
-  useEffect(() => {
-    if (editData) {
-      setForm({
-        id: editData.id,
-        date: editData.date,
-        pay: editData.pay,
-        classType: editData.classType,
-        from: editData.from,
-        to: editData.to,
-        kakudo: editData.kakudo,
-        note: editData.note ?? ""
-      });
-    } else {
-      setForm({
-        id: null,
-        date: nextMonth,
-        pay: "会社",
-        classType: "H",
-        from: "HND",
-        to: "OKA",
-        kakudo: 60,
-        note: ""
-      });
-    }
-  }, [editData]);
+useEffect(() => {
+  if (editData) {
+    setForm({
+      id: editData.id,
+      date: editData.date,
+      pay: editData.pay,
+      classType: editData.classType,
+      from: editData.from,
+      to: editData.to,
+      kakudo: editData.kakudo,
+      note: editData.note ?? ""
+    });
+  } else {
+    setForm({
+      id: null,
+      date: nextMonth,
+      pay: "会社",
+      classType: "H",
+      from: "HND",
+      to: "OKA",
+      kakudo: 60,
+      note: ""
+    });
+  }
+}, [editData, nextMonth]);
+
 
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
